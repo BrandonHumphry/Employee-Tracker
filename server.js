@@ -1,9 +1,9 @@
 // this is strictly the runtime that connects the views and db(model)
-// var express = require("express");
+var express = require("express");
 var inquirer = require("inquirer");
 var connection = require("./db/connection.js");
 
-const employeeQuestions = function() {
+const questionSet = function() {
   inquirer
     .prompt({
       type: "list",
@@ -54,33 +54,64 @@ const employeeQuestions = function() {
       }
     });
 };
-
-employeeQuestions();
+questionSet();
 
 async function viewEmployees() {
-  const answer = await connection.query("SELECT * FROM employee");
-  console.log("\n Employees Retrieved from Database \n");
-  console.table(answer);
+  const answer = await connection.query("SELECT * FROM employee", function(err, answer){
+    console.log("\n Employees Retrieved from Database \n");
+    console.table(answer);
+  }); 
+  questionSet();
 }
 
 async function viewRoles() {
-  const answer = await connection.query("SELECT * FROM role") 
+  const answer = await connection.query("SELECT * FROM role", function(err, answer){
     console.log("\n Role Retrieved from Database \n");
     console.table(answer);
+  });
+   questionSet();
 }
 
 async function viewDepartments() {
-  const answer = await connection.query("SELECT * FROM department") 
+  const answer = await connection.query("SELECT * FROM department", function(err, answer){
     console.log("\n Department Retrieved from Database \n");
     console.table(answer);
+  });
+  questionSet();  
 }
 
+async function addEmployee() {
+  inquirer
+    .prompt([{
+      type: "input",
+      name: "firstname",
+      message: "Please enter the employee's first name",
+   },
+   {
+    type: "input",
+    name: "lastname",
+    message: "Please enter the employee's last name",
+  }
+ ])
+.then(function(answer){
+  connection.query(
+    "INSERT INTO employee SET ?",
+    {
+      first_name: answer.firstname,
+      last_name: answer.lastname,
+      role_id: null,
+      manager_id: null
+    },
+    function(err, answer){
+      if (err) {
+        throw err;
+      }
+    }
+  );
+  questionSet();
+})
+}
 
-
-//   askQ();
-
-
-// // addEmployee();
 // // updateRole();
 // // addDepartment();
 // // addRole();
